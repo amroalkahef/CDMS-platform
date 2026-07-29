@@ -1,0 +1,57 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: platform
+      POSTGRES_PASSWORD: platform
+      POSTGRES_DB: platform
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U platform -d platform"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  ai-platform:
+    build: ./ai-platform
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+psycopg2://platform:platform@postgres:5432/platform
+      BACKEND_BASE_URL: http://backend:8000
+    ports:
+      - "18001:8001"
+    volumes:
+      - ai_documents:/data/documents
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  backend:
+    build: ./backend
+    environment:
+      DATABASE_URL: postgresql+psycopg2://platform:platform@postgres:5432/platform
+      AI_PLATFORM_BASE_URL: http://ai-platform:8001
+    ports:
+      - "18000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      ai-platform:
+        condition: service_started
+
+  web:
+    build:
+      context: ./web
+      args:
+        NEXT_PUBLIC_BACKEND_URL: http://localhost:18000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:
+  ai_documents:

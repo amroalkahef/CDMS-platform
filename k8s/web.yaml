@@ -1,0 +1,47 @@
+# NEXT_PUBLIC_BACKEND_URL is baked in at image build time (Next.js inlines
+# it into the client bundle), so it must be set as a --build-arg pointing at
+# the public URL of the backend (e.g. the Ingress host below) when you build
+# this image for a real cluster — changing it here at runtime has no effect.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+  namespace: cdms-platform
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      containers:
+        - name: web
+          image: cdms-platform-web:latest # replace with your registry image
+          ports:
+            - containerPort: 3000
+          readinessProbe:
+            httpGet: { path: /, port: 3000 }
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /, port: 3000 }
+            initialDelaySeconds: 20
+            periodSeconds: 20
+          resources:
+            requests: { cpu: 100m, memory: 256Mi }
+            limits: { cpu: 500m, memory: 512Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web
+  namespace: cdms-platform
+spec:
+  selector:
+    app: web
+  ports:
+    - port: 3000
+      targetPort: 3000

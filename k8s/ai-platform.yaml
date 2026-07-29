@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ai-platform
+  namespace: cdms-platform
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: ai-platform
+  template:
+    metadata:
+      labels:
+        app: ai-platform
+    spec:
+      containers:
+        - name: ai-platform
+          image: cdms-platform-ai-platform:latest # replace with your registry image
+          ports:
+            - containerPort: 8001
+          envFrom:
+            - configMapRef:
+                name: platform-config
+          env:
+            - name: LLM_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: platform-secrets
+                  key: LLM_API_KEY
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: platform-secrets
+                  key: DATABASE_URL
+          readinessProbe:
+            httpGet: { path: /health, port: 8001 }
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /health, port: 8001 }
+            initialDelaySeconds: 20
+            periodSeconds: 20
+          resources:
+            requests: { cpu: 250m, memory: 512Mi }
+            limits: { cpu: "1", memory: 1Gi }
+          volumeMounts:
+            - name: documents
+              mountPath: /data/documents
+      volumes:
+        - name: documents
+          emptyDir: {} # replace with a PVC or object storage mount in production
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ai-platform
+  namespace: cdms-platform
+spec:
+  selector:
+    app: ai-platform
+  ports:
+    - port: 8001
+      targetPort: 8001

@@ -1,0 +1,22 @@
+# env
+.env
+*.env.local
+k8s/secret.yaml
+
+# python
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+
+# node / next.js
+node_modules/
+.next/
+out/
+next-env.d.ts.bak
+
+# misc
+.DS_Store
+*.log
+data/

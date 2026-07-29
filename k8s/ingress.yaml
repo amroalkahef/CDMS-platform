@@ -1,0 +1,29 @@
+# Adjust the host and TLS/cert-manager annotations for your cluster/ingress
+# controller. Example assumes an nginx ingress controller.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: platform-ingress
+  namespace: cdms-platform
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "20m" # allow document uploads
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: cdms.example.com
+      http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: backend
+                port:
+                  number: 8000
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: web
+                port:
+                  number: 3000

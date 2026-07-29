@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: platform-config
+  namespace: cdms-platform
+data:
+  LLM_BASE_URL: ""
+  CHAT_MODEL: "gpt-4o-mini"
+  EMBEDDING_MODEL: "text-embedding-3-small"
+  EMBEDDING_DIM: "1536"
+  BACKEND_BASE_URL: "http://backend:8000"
+  AI_PLATFORM_BASE_URL: "http://ai-platform:8001"
