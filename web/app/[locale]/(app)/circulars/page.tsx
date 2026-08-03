@@ -4,6 +4,9 @@ import { Eye, Pencil, Plus, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/components/AuthProvider";
+import ErrorCard from "@/components/ErrorCard";
+import PageHeader from "@/components/PageHeader";
+import StatusBadge from "@/components/StatusBadge";
 import { Link } from "@/i18n/navigation";
 import { api, Circular, Constants } from "@/lib/api";
 import { apiErrorMessage } from "@/lib/errors";
@@ -49,18 +52,18 @@ export default function CircularsPage() {
 
   return (
     <div>
-      <div className="page-header">
-        <div>
-          <h1>{t("title")}</h1>
-          <p className="page-subtitle">{t("subtitle")}</p>
-        </div>
-        {isEditor && (
-          <Link href="/circulars/new" className="btn btn-primary">
-            <Plus size={16} />
-            {t("newCircular")}
-          </Link>
-        )}
-      </div>
+      <PageHeader
+        title={t("title")}
+        subtitle={t("subtitle")}
+        actions={
+          isEditor && (
+            <Link href="/circulars/new" className="btn btn-primary">
+              <Plus size={16} />
+              {t("newCircular")}
+            </Link>
+          )
+        }
+      />
 
       <div className="filter-row">
         <input className="search-input" placeholder={t("searchPlaceholder")} value={q} onChange={(e) => setQ(e.target.value)} />
@@ -82,12 +85,7 @@ export default function CircularsPage() {
         </select>
       </div>
 
-      {error && (
-        <div className="card">
-          <strong>{tc("error")}</strong>
-          <p className="muted">{error}</p>
-        </div>
-      )}
+      {error && <ErrorCard title={tc("error")} message={error} />}
 
       <div className="card" style={{ padding: 0, overflowX: "auto" }}>
         <table>
@@ -95,9 +93,9 @@ export default function CircularsPage() {
             <tr>
               <th>{t("columns.circularNumber")}</th>
               <th>{t("columns.title")}</th>
-              <th>{t("columns.department")}</th>
-              <th>{t("columns.frequency")}</th>
-              <th>{t("columns.publicationDate")}</th>
+              <th className="col-optional">{t("columns.department")}</th>
+              <th className="col-optional">{t("columns.frequency")}</th>
+              <th className="col-optional">{t("columns.publicationDate")}</th>
               <th>{t("columns.status")}</th>
               <th>{t("columns.actions")}</th>
             </tr>
@@ -107,23 +105,23 @@ export default function CircularsPage() {
               <tr key={c.id}>
                 <td dir="ltr">{c.circular_number ?? "—"}</td>
                 <td>{c.title}</td>
-                <td>{tDept(c.department)}</td>
-                <td>{tFreq(c.frequency)}</td>
-                <td dir="ltr">{c.publication_date ?? "—"}</td>
+                <td className="col-optional">{tDept(c.department)}</td>
+                <td className="col-optional">{tFreq(c.frequency)}</td>
+                <td className="col-optional" dir="ltr">{c.publication_date ?? "—"}</td>
                 <td>
-                  <span className={`badge badge-${c.status}`}>{tStatus(c.status)}</span>
+                  <StatusBadge status={c.status} />
                 </td>
                 <td>
                   <div className="actions-cell">
-                    <Link href={`/circulars/${c.id}`} className="btn-icon">
+                    <Link href={`/circulars/${c.id}`} className="btn-icon" aria-label={tc("view")} title={tc("view")}>
                       <Eye size={16} />
                     </Link>
                     {isEditor && (
                       <>
-                        <Link href={`/circulars/${c.id}/edit`} className="btn-icon">
+                        <Link href={`/circulars/${c.id}/edit`} className="btn-icon" aria-label={tc("edit")} title={tc("edit")}>
                           <Pencil size={16} />
                         </Link>
-                        <button className="btn-icon" onClick={() => handleDelete(c.id)}>
+                        <button className="btn-icon" onClick={() => handleDelete(c.id)} aria-label={tc("delete")} title={tc("delete")}>
                           <Trash2 size={16} />
                         </button>
                       </>

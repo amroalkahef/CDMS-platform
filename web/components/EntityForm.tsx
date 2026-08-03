@@ -6,25 +6,30 @@ import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import SimilarityResults from "@/components/SimilarityResults";
 import { useRouter } from "@/i18n/navigation";
-import { api, Constants, Decision, SimilarityHit } from "@/lib/api";
+import { api, Circular, Constants, Decision, SimilarityHit } from "@/lib/api";
 import { apiErrorMessage } from "@/lib/errors";
 
-export default function DecisionForm({ decisionId }: { decisionId?: string }) {
-  const t = useTranslations("decisionForm");
+type EntityType = "circular" | "decision";
+
+export default function EntityForm({ entityType, entityId }: { entityType: EntityType; entityId?: string }) {
+  const isCircular = entityType === "circular";
+  const t = useTranslations(isCircular ? "circularForm" : "decisionForm");
   const tc = useTranslations("common");
   const tSim = useTranslations("similarity");
   const tDept = useTranslations("departments");
+  const tFreq = useTranslations("frequencies");
   const tStatus = useTranslations("statuses");
   const locale = useLocale();
   const router = useRouter();
   const { user } = useAuth();
 
   const [constants, setConstants] = useState<Constants | null>(null);
-  const [decisionNumber, setDecisionNumber] = useState<string | null>(null);
+  const [entityNumber, setEntityNumber] = useState<string | null>(null);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [department, setDepartment] = useState("Administration");
-  const [effectiveDate, setEffectiveDate] = useState("");
+  const [primaryDate, setPrimaryDate] = useState("");
+  const [frequency, setFrequency] = useState("One-Time");
   const [status, setStatus] = useState("draft");
 
   const [aiPrompt, setAiPrompt] = useState("");
@@ -41,16 +46,19 @@ export default function DecisionForm({ decisionId }: { decisionId?: string }) {
   }, []);
 
   useEffect(() => {
-    if (!decisionId) return;
-    api.getDecision(decisionId).then((d) => {
-      setDecisionNumber(d.decision_number);
-      setTitle(d.title);
-      setContent(d.content);
-      setDepartment(d.department);
-      setEffectiveDate(d.effective_date ?? "");
-      setStatus(d.status);
+    if (!entityId) return;
+    const load = isCircular ? api.getCircular(entityId) : api.getDecision(entityId);
+    load.then((e) => {
+      setEntityNumber(isCircular ? (e as Circular).circular_number : (e as Decision).decision_number);
+      setTitle(e.title);
+      setContent(e.content);
+      setDepartment(e.department);
+      setPrimaryDate((isCircular ? (e as Circular).publication_date : (e as Decision).effective_date) ?? "");
+      if (isCircular) setFrequency((e as Circular).frequency);
+      setStatus(e.status);
     });
-  }, [decisionId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [entityId, entityType]);
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -61,7 +69,7 @@ export default function DecisionForm({ decisionId }: { decisionId?: string }) {
     debounceRef.current = setTimeout(async () => {
       setCheckingSimilarity(true);
       try {
-        const r = await api.checkSimilarity({ entity_type: "decision", title, content, exclude_id: decisionId });
+        const r = await api.checkSimilarity({ entity_type: entityType, title, content, exclude_id: entityId });
         setSimilarity(r.results);
       } catch {
         setSimilarity(null);
@@ -72,13 +80,18 @@ export default function DecisionForm({ decisionId }: { decisionId?: string }) {
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-  }, [title, content, decisionId]);
+  }, [title, content, entityId, entityType]);
 
   async function handleGenerate() {
     setGenerating(true);
     setError(null);
     try {
-      const r = await api.draft({ task_type: "generate_decision", user_prompt: aiPrompt, doc_type_filter: "decision", language: locale });
+      const r = await api.draft({
+        task_type: isCircular ? "generate_circular" : "generate_decision",
+        user_prompt: aiPrompt,
+        doc_type_filter: entityType,
+        language: locale,
+      });
       setContent(r.draft);
     } catch (e) {
       setError(apiErrorMessage(e, tc));
@@ -91,16 +104,16 @@ export default function DecisionForm({ decisionId }: { decisionId?: string }) {
     e.preventDefault();
     setSaving(true);
     setError(null);
-    const payload = {
-      title,
-      content,
-      department,
-      effective_date: effectiveDate || undefined,
-      status,
-    };
     try {
-      const saved: Decision = decisionId ? await api.updateDecision(decisionId, payload) : await api.createDecision(payload);
-      router.push(`/decisions/${saved.id}`);
+      let saved: Circular | Decision;
+      if (isCircular) {
+        const payload = { title, content, department, frequency, publication_date: primaryDate || undefined, status };
+        saved = entityId ? await api.updateCircular(entityId, payload) : await api.createCircular(payload);
+      } else {
+        const payload = { title, content, department, effective_date: primaryDate || undefined, status };
+        saved = entityId ? await api.updateDecision(entityId, payload) : await api.createDecision(payload);
+      }
+      router.push(`/${isCircular ? "circulars" : "decisions"}/${saved.id}`);
     } catch (e2) {
       setError(apiErrorMessage(e2, tc));
     } finally {
@@ -115,6 +128,8 @@ export default function DecisionForm({ decisionId }: { decisionId?: string }) {
       </div>
     );
   }
+
+  const statuses = isCircular ? constants?.circular_statuses : constants?.decision_statuses;
 
   return (
     <form onSubmit={handleSubmit} className="two-col">
@@ -148,12 +163,16 @@ export default function DecisionForm({ decisionId }: { decisionId?: string }) {
 
         <div className="field-row">
           <div>
-            <label>{t("decisionNumberField")}</label>
-            <input dir={decisionNumber ? "ltr" : undefined} value={decisionNumber ?? t("decisionNumberAutoHint")} disabled />
+            <label>{isCircular ? t("circularNumberField") : t("decisionNumberField")}</label>
+            <input
+              dir={entityNumber ? "ltr" : undefined}
+              value={entityNumber ?? (isCircular ? t("circularNumberAutoHint") : t("decisionNumberAutoHint"))}
+              disabled
+            />
           </div>
           <div>
-            <label>{t("effectiveDateField")}</label>
-            <input type="date" value={effectiveDate} onChange={(e) => setEffectiveDate(e.target.value)} />
+            <label>{isCircular ? t("publicationDateField") : t("effectiveDateField")}</label>
+            <input type="date" value={primaryDate} onChange={(e) => setPrimaryDate(e.target.value)} />
           </div>
         </div>
 
@@ -174,17 +193,43 @@ export default function DecisionForm({ decisionId }: { decisionId?: string }) {
               ))}
             </select>
           </div>
-          <div>
+          {isCircular ? (
+            <div>
+              <label>{t("frequencyField")}</label>
+              <select value={frequency} onChange={(e) => setFrequency(e.target.value)}>
+                {(constants?.circular_frequencies ?? [frequency]).map((f) => (
+                  <option key={f} value={f}>
+                    {tFreq(f)}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : (
+            <div>
+              <label>{t("statusField")}</label>
+              <select value={status} onChange={(e) => setStatus(e.target.value)}>
+                {(statuses ?? [status]).map((s) => (
+                  <option key={s} value={s}>
+                    {tStatus(s)}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+        </div>
+
+        {isCircular && (
+          <>
             <label>{t("statusField")}</label>
             <select value={status} onChange={(e) => setStatus(e.target.value)}>
-              {(constants?.decision_statuses ?? [status]).map((s) => (
+              {(statuses ?? [status]).map((s) => (
                 <option key={s} value={s}>
                   {tStatus(s)}
                 </option>
               ))}
             </select>
-          </div>
-        </div>
+          </>
+        )}
 
         {error && (
           <p className="muted" style={{ color: "var(--error)" }}>
@@ -197,7 +242,7 @@ export default function DecisionForm({ decisionId }: { decisionId?: string }) {
             {tc("cancel")}
           </button>
           <button type="submit" className="btn-primary" disabled={saving}>
-            {saving ? tc("loading") : decisionId ? tc("saveChanges") : tc("create")}
+            {saving ? tc("loading") : entityId ? tc("saveChanges") : tc("create")}
           </button>
         </div>
       </div>

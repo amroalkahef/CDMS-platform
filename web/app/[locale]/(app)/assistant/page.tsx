@@ -3,6 +3,7 @@
 import { Bot, Send, Sparkles } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useRef, useState } from "react";
+import PageHeader from "@/components/PageHeader";
 import { api, ChatEvent } from "@/lib/api";
 import { ApiError, apiErrorMessage } from "@/lib/errors";
 
@@ -97,11 +98,7 @@ export default function AssistantPage() {
 
   return (
     <div className="chat-shell">
-      <div className="eyebrow">
-        <Sparkles className="sparkle" />
-        {t("title")}
-      </div>
-      <p className="page-subtitle">{t("subtitle")}</p>
+      <PageHeader icon={Sparkles} title={t("title")} subtitle={t("subtitle")} />
 
       {messages.length === 0 ? (
         <div className="chat-empty">
@@ -145,7 +142,12 @@ export default function AssistantPage() {
           onKeyDown={handleKeyDown}
           placeholder={t("inputPlaceholder")}
         />
-        <button className="btn-primary chat-send-btn" disabled={loading || !input.trim()} onClick={() => send(input)}>
+        <button
+          className="btn-primary chat-send-btn"
+          disabled={loading || !input.trim()}
+          onClick={() => send(input)}
+          aria-label={t("sendButton")}
+        >
           <Send size={18} />
         </button>
       </div>

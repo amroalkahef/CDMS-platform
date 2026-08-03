@@ -2,7 +2,7 @@
   --bg: #f7f7fb;
   --surface: #ffffff;
   --text: #14162c;
-  --muted: #6b7280;
+  --muted: #5b6472;
   --border: #e5e7eb;
   --accent: #7c3aed;
   --accent-hover: #6d28d9;
@@ -14,6 +14,7 @@
   --success: #059669;
   --success-soft: #ecfdf5;
   --info-soft: #f1f2f8;
+  --focus-ring: #2563eb;
 
   --sidebar-bg: #12142b;
   --sidebar-bg-hover: #1c1f3d;
@@ -21,6 +22,14 @@
   --sidebar-text-muted: #7d81a3;
   --sidebar-border: #23264a;
   --sidebar-active-bg: #292c57;
+
+  --font-body: var(--font-latin), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-heading: var(--font-latin), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+[dir="rtl"] {
+  --font-body: var(--font-arabic), "Segoe UI", Tahoma, Roboto, sans-serif;
+  --font-heading: var(--font-arabic), "Segoe UI", Tahoma, Roboto, sans-serif;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -57,11 +66,44 @@ body {
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: var(--font-body);
 }
 
-[dir="rtl"] body {
-  font-family: "Segoe UI", Tahoma, Roboto, sans-serif;
+h1,
+h2,
+h3 {
+  font-family: var(--font-heading);
+}
+
+/* Visible keyboard-focus indicator, consistent across light/dark and both sidebar
+   and content backgrounds. Native UA outlines are inconsistent against --sidebar-bg. */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+.sidebar-link:focus-visible,
+.suggestion-card:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 1rem;
+  z-index: 100;
+  background: var(--accent);
+  color: #ffffff;
+  padding: 0.6rem 1rem;
+  border-radius: 0 0 8px 8px;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.skip-link:focus {
+  top: 0;
 }
 
 /* letter-spacing spreads out the cursive joins between Arabic letters,
@@ -113,6 +155,28 @@ a {
   align-items: center;
   justify-content: space-between;
   padding: 0 0.5rem 1.5rem;
+}
+
+.sidebar-close {
+  display: none;
+  background: transparent;
+  border: none;
+  color: var(--sidebar-text);
+  padding: 0.3rem;
+  border-radius: 6px;
+}
+
+.sidebar-close:hover {
+  background: var(--sidebar-bg-hover);
+  color: #ffffff;
+}
+
+.mobile-topbar {
+  display: none;
+}
+
+.sidebar-backdrop {
+  display: none;
 }
 
 .sidebar-brand {
@@ -216,12 +280,95 @@ a {
   height: 18px;
 }
 
+/* ---------- Responsive sidebar (off-canvas drawer below 768px) ---------- */
+
+@media (max-width: 768px) {
+  .app-shell {
+    flex-direction: column;
+  }
+
+  .mobile-topbar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: var(--sidebar-bg);
+    color: #ffffff;
+    padding: 0.85rem 1rem;
+    position: sticky;
+    top: 0;
+    z-index: 30;
+  }
+
+  .sidebar-menu-btn {
+    background: transparent;
+    border: none;
+    color: #ffffff;
+    padding: 0.3rem;
+    border-radius: 6px;
+  }
+
+  .sidebar-menu-btn:hover {
+    background: var(--sidebar-bg-hover);
+  }
+
+  .mobile-topbar-brand {
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .sidebar-close {
+    display: inline-flex;
+  }
+
+  .sidebar {
+    position: fixed;
+    inset-block: 0;
+    inset-inline-start: 0;
+    width: min(80vw, 300px);
+    z-index: 40;
+    transform: translateX(-100%);
+    transition: transform 0.2s ease;
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.3);
+  }
+
+  [dir="rtl"] .sidebar {
+    transform: translateX(100%);
+  }
+
+  .sidebar.sidebar-open {
+    transform: translateX(0);
+  }
+
+  .sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 10, 20, 0.45);
+    z-index: 35;
+  }
+
+  .content {
+    padding: 1.25rem 1rem;
+  }
+}
+
 /* ---------- Typography ---------- */
 
 h1 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   font-size: 1.9rem;
   font-weight: 800;
   margin: 0 0 0.35rem;
+}
+
+h1 svg {
+  flex-shrink: 0;
+  width: 1.5rem;
+  height: 1.5rem;
 }
 
 h2 {
@@ -265,8 +412,12 @@ h3 {
   margin-bottom: 1.25rem;
 }
 
-.card-tight {
-  padding: 1rem 1.25rem;
+.error-card {
+  border-color: var(--error);
+}
+
+.error-card strong {
+  color: var(--error);
 }
 
 /* ---------- Buttons ---------- */
@@ -393,6 +544,13 @@ textarea {
   margin-bottom: 1.5rem;
 }
 
+.page-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
 .back-link {
   display: inline-flex;
   align-items: center;
@@ -505,6 +663,12 @@ td {
 
 tbody tr:hover {
   background: var(--info-soft);
+}
+
+@media (max-width: 640px) {
+  .col-optional {
+    display: none;
+  }
 }
 
 /* Same reasoning as .app-shell above: justify-content: flex-end already

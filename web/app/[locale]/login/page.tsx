@@ -44,7 +44,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "1.5rem" }}>
+    <div id="main-content" style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "1.5rem" }}>
       <div className="card" style={{ width: "100%", maxWidth: 420 }}>
         <div className="eyebrow" style={{ fontSize: "1.3rem", marginBottom: "0.3rem" }}>
           <Sparkles className="sparkle" size={22} />

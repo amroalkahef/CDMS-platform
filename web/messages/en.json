@@ -6,7 +6,9 @@
     "circulars": "Circulars",
     "decisions": "Decisions",
     "assistant": "AI Assistant",
-    "knowledge": "Knowledge Base"
+    "knowledge": "Knowledge Base",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu"
   },
   "common": {
     "save": "Save",
@@ -229,7 +231,8 @@
     "referencesLabel": "References",
     "noReferences": "No matching documents were found in the knowledge base.",
     "newChatButton": "New chat",
-    "searchingIndicator": "Looking up records…"
+    "searchingIndicator": "Looking up records…",
+    "sendButton": "Send message"
   },
   "knowledge": {
     "title": "Knowledge Base",

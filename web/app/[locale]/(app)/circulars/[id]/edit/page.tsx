@@ -2,7 +2,8 @@
 
 import { ArrowLeft } from "lucide-react";
 import { useTranslations } from "next-intl";
-import CircularForm from "@/components/CircularForm";
+import EntityForm from "@/components/EntityForm";
+import PageHeader from "@/components/PageHeader";
 import { Link } from "@/i18n/navigation";
 
 export default function EditCircularPage({ params }: { params: { id: string } }) {
@@ -15,9 +16,8 @@ export default function EditCircularPage({ params }: { params: { id: string } })
         <ArrowLeft size={15} />
         {tc("back")}
       </Link>
-      <h1>{t("editTitle")}</h1>
-      <p className="page-subtitle">{t("editSubtitle")}</p>
-      <CircularForm circularId={params.id} />
+      <PageHeader title={t("editTitle")} subtitle={t("editSubtitle")} />
+      <EntityForm entityType="circular" entityId={params.id} />
     </div>
   );
 }

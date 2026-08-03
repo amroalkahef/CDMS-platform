@@ -3,6 +3,8 @@
 import { AlertCircle, CheckCircle2, ClipboardEdit, FileText } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
+import ErrorCard from "@/components/ErrorCard";
+import PageHeader from "@/components/PageHeader";
 import { api, Stats } from "@/lib/api";
 import { apiErrorMessage } from "@/lib/errors";
 
@@ -21,15 +23,9 @@ export default function Dashboard() {
 
   return (
     <div>
-      <h1>{t("title")}</h1>
-      <p className="page-subtitle">{t("subtitle")}</p>
+      <PageHeader title={t("title")} subtitle={t("subtitle")} />
 
-      {error && (
-        <div className="card">
-          <strong>{tc("unreachableBackend")}</strong>
-          <p className="muted">{error}</p>
-        </div>
-      )}
+      {error && <ErrorCard title={tc("unreachableBackend")} message={error} />}
 
       <div className="stat-grid">
         <div className="card stat-card">

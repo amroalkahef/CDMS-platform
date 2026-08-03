@@ -4,6 +4,9 @@ import { Eye, Pencil, Plus, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/components/AuthProvider";
+import ErrorCard from "@/components/ErrorCard";
+import PageHeader from "@/components/PageHeader";
+import StatusBadge from "@/components/StatusBadge";
 import { Link } from "@/i18n/navigation";
 import { api, Constants, Decision } from "@/lib/api";
 import { apiErrorMessage } from "@/lib/errors";
@@ -48,18 +51,18 @@ export default function DecisionsPage() {
 
   return (
     <div>
-      <div className="page-header">
-        <div>
-          <h1>{t("title")}</h1>
-          <p className="page-subtitle">{t("subtitle")}</p>
-        </div>
-        {isEditor && (
-          <Link href="/decisions/new" className="btn btn-primary">
-            <Plus size={16} />
-            {t("newDecision")}
-          </Link>
-        )}
-      </div>
+      <PageHeader
+        title={t("title")}
+        subtitle={t("subtitle")}
+        actions={
+          isEditor && (
+            <Link href="/decisions/new" className="btn btn-primary">
+              <Plus size={16} />
+              {t("newDecision")}
+            </Link>
+          )
+        }
+      />
 
       <div className="filter-row">
         <input className="search-input" placeholder={t("searchPlaceholder")} value={q} onChange={(e) => setQ(e.target.value)} />
@@ -81,12 +84,7 @@ export default function DecisionsPage() {
         </select>
       </div>
 
-      {error && (
-        <div className="card">
-          <strong>{tc("error")}</strong>
-          <p className="muted">{error}</p>
-        </div>
-      )}
+      {error && <ErrorCard title={tc("error")} message={error} />}
 
       <div className="card" style={{ padding: 0, overflowX: "auto" }}>
         <table>
@@ -94,8 +92,8 @@ export default function DecisionsPage() {
             <tr>
               <th>{t("columns.decisionNumber")}</th>
               <th>{t("columns.title")}</th>
-              <th>{t("columns.department")}</th>
-              <th>{t("columns.effectiveDate")}</th>
+              <th className="col-optional">{t("columns.department")}</th>
+              <th className="col-optional">{t("columns.effectiveDate")}</th>
               <th>{t("columns.status")}</th>
               <th>{t("columns.actions")}</th>
             </tr>
@@ -105,22 +103,22 @@ export default function DecisionsPage() {
               <tr key={d.id}>
                 <td dir="ltr">{d.decision_number ?? "—"}</td>
                 <td>{d.title}</td>
-                <td>{tDept(d.department)}</td>
-                <td dir="ltr">{d.effective_date ?? "—"}</td>
+                <td className="col-optional">{tDept(d.department)}</td>
+                <td className="col-optional" dir="ltr">{d.effective_date ?? "—"}</td>
                 <td>
-                  <span className={`badge badge-${d.status}`}>{tStatus(d.status)}</span>
+                  <StatusBadge status={d.status} />
                 </td>
                 <td>
                   <div className="actions-cell">
-                    <Link href={`/decisions/${d.id}`} className="btn-icon">
+                    <Link href={`/decisions/${d.id}`} className="btn-icon" aria-label={tc("view")} title={tc("view")}>
                       <Eye size={16} />
                     </Link>
                     {isEditor && (
                       <>
-                        <Link href={`/decisions/${d.id}/edit`} className="btn-icon">
+                        <Link href={`/decisions/${d.id}/edit`} className="btn-icon" aria-label={tc("edit")} title={tc("edit")}>
                           <Pencil size={16} />
                         </Link>
-                        <button className="btn-icon" onClick={() => handleDelete(d.id)}>
+                        <button className="btn-icon" onClick={() => handleDelete(d.id)} aria-label={tc("delete")} title={tc("delete")}>
                           <Trash2 size={16} />
                         </button>
                       </>

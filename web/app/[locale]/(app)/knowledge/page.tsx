@@ -3,6 +3,8 @@
 import { Library } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
+import ErrorCard from "@/components/ErrorCard";
+import PageHeader from "@/components/PageHeader";
 import { api } from "@/lib/api";
 import { apiErrorMessage } from "@/lib/errors";
 
@@ -41,11 +43,7 @@ export default function KnowledgePage() {
 
   return (
     <div>
-      <div className="eyebrow">
-        <Library className="sparkle" />
-        {t("title")}
-      </div>
-      <p className="page-subtitle">{t("subtitle")}</p>
+      <PageHeader icon={Library} title={t("title")} subtitle={t("subtitle")} />
 
       <div className="card" style={{ maxWidth: 640 }}>
         <label>{t("titleField")}</label>

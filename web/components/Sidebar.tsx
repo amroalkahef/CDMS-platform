@@ -1,7 +1,8 @@
 "use client";
 
-import { LayoutDashboard, FileText, ClipboardEdit, MessageSquare, Library, Languages, LogOut } from "lucide-react";
+import { LayoutDashboard, FileText, ClipboardEdit, MessageSquare, Library, Languages, LogOut, X } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
+import { useEffect } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
 
@@ -13,7 +14,7 @@ const NAV_ITEMS = [
   { href: "/knowledge", key: "knowledge", icon: Library },
 ] as const;
 
-export default function Sidebar() {
+export default function Sidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
   const t = useTranslations("nav");
   const tAuth = useTranslations("auth");
   const locale = useLocale();
@@ -21,47 +22,60 @@ export default function Sidebar() {
   const router = useRouter();
   const { user, logout } = useAuth();
 
+  useEffect(() => {
+    onClose();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname]);
+
   function handleLogout() {
     logout();
     router.replace("/login");
   }
 
   return (
-    <aside className="sidebar">
-      <div className="sidebar-header">
-        <span className="sidebar-brand">{t("brand")}</span>
-        <Link href={pathname} locale={locale === "en" ? "ar" : "en"} className="lang-toggle">
-          <Languages size={14} />
-          {locale === "en" ? "AR" : "EN"}
-        </Link>
-      </div>
-
-      {user && (
-        <div className="sidebar-user">
-          <div className="sidebar-user-name">{user.name}</div>
-          <span className={`badge sidebar-role-badge role-${user.role}`}>
-            {user.role === "editor" ? tAuth("roleEditor") : tAuth("roleReviewer")}
-          </span>
-        </div>
-      )}
-
-      <div className="sidebar-menu-label">{t("menu")}</div>
-      <nav className="sidebar-nav">
-        {NAV_ITEMS.map(({ href, key, icon: Icon }) => {
-          const isActive = href === "/" ? pathname === "/" : pathname.startsWith(href);
-          return (
-            <Link key={href} href={href} className={`sidebar-link${isActive ? " active" : ""}`}>
-              <Icon />
-              {t(key)}
+    <>
+      {open && <div className="sidebar-backdrop" onClick={onClose} />}
+      <aside className={`sidebar${open ? " sidebar-open" : ""}`}>
+        <div className="sidebar-header">
+          <span className="sidebar-brand">{t("brand")}</span>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+            <Link href={pathname} locale={locale === "en" ? "ar" : "en"} className="lang-toggle">
+              <Languages size={14} />
+              {locale === "en" ? "AR" : "EN"}
             </Link>
-          );
-        })}
-      </nav>
+            <button type="button" className="sidebar-close" onClick={onClose} aria-label={t("closeMenu")}>
+              <X size={18} />
+            </button>
+          </div>
+        </div>
 
-      <button type="button" className="sidebar-link sidebar-logout" onClick={handleLogout}>
-        <LogOut />
-        {tAuth("logout")}
-      </button>
-    </aside>
+        {user && (
+          <div className="sidebar-user">
+            <div className="sidebar-user-name">{user.name}</div>
+            <span className={`badge sidebar-role-badge role-${user.role}`}>
+              {user.role === "editor" ? tAuth("roleEditor") : tAuth("roleReviewer")}
+            </span>
+          </div>
+        )}
+
+        <div className="sidebar-menu-label">{t("menu")}</div>
+        <nav className="sidebar-nav">
+          {NAV_ITEMS.map(({ href, key, icon: Icon }) => {
+            const isActive = href === "/" ? pathname === "/" : pathname.startsWith(href);
+            return (
+              <Link key={href} href={href} className={`sidebar-link${isActive ? " active" : ""}`}>
+                <Icon />
+                {t(key)}
+              </Link>
+            );
+          })}
+        </nav>
+
+        <button type="button" className="sidebar-link sidebar-logout" onClick={handleLogout}>
+          <LogOut />
+          {tAuth("logout")}
+        </button>
+      </aside>
+    </>
   );
 }

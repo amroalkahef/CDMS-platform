@@ -6,6 +6,9 @@ import { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { useAuth } from "@/components/AuthProvider";
+import ErrorCard from "@/components/ErrorCard";
+import PageHeader from "@/components/PageHeader";
+import StatusBadge from "@/components/StatusBadge";
 import { Link, useRouter } from "@/i18n/navigation";
 import { api, Circular, Decision, DocumentVersion, Workflow } from "@/lib/api";
 import { apiErrorMessage } from "@/lib/errors";
@@ -86,12 +89,7 @@ export default function EntityDetail({ entityType, entityId }: { entityType: Ent
   }
 
   if (error && !entity) {
-    return (
-      <div className="card">
-        <strong>{tc("error")}</strong>
-        <p className="muted">{error}</p>
-      </div>
-    );
+    return <ErrorCard title={tc("error")} message={error} />;
   }
 
   if (!entity) {
@@ -110,13 +108,15 @@ export default function EntityDetail({ entityType, entityId }: { entityType: Ent
         {t("backToList")}
       </Link>
 
-      <div className="page-header">
-        <div>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
-            <h1 style={{ marginBottom: 0 }}>{entity.title}</h1>
-            <span className={`badge badge-${entity.status}`}>{tStatus(entity.status)}</span>
-          </div>
-          <p className="muted">
+      <PageHeader
+        title={
+          <>
+            {entity.title}
+            <StatusBadge status={entity.status} />
+          </>
+        }
+        subtitle={
+          <>
             {entityType === "circular" && (entity as Circular).circular_number && (
               <span dir="ltr">{(entity as Circular).circular_number} · </span>
             )}
@@ -127,36 +127,33 @@ export default function EntityDetail({ entityType, entityId }: { entityType: Ent
             {entityType === "circular" && (entity as Circular).frequency && ` · ${tFreq((entity as Circular).frequency)}`}
             {" · "}
             {t("version")} {entity.version}
-          </p>
-        </div>
-        <div style={{ display: "flex", gap: "0.5rem" }}>
-          {canPublish && (
-            <button className="btn-primary" disabled={busy} onClick={handlePublish}>
-              <UploadCloud size={15} />
-              {busy ? tc("publishing") : t("publishButton")}
-            </button>
-          )}
-          {isEditor && (
-            <>
-              <Link href={`${listHref}/${entityId}/edit`} className="btn btn-secondary">
-                <Pencil size={15} />
-                {t("editButton")}
-              </Link>
-              <button className="btn-danger" onClick={handleDelete}>
-                <Trash2 size={15} />
-                {t("deleteButton")}
+          </>
+        }
+        actions={
+          <>
+            {canPublish && (
+              <button className="btn-primary" disabled={busy} onClick={handlePublish}>
+                <UploadCloud size={15} />
+                {busy ? tc("publishing") : t("publishButton")}
               </button>
-            </>
-          )}
-        </div>
-      </div>
+            )}
+            {isEditor && (
+              <>
+                <Link href={`${listHref}/${entityId}/edit`} className="btn btn-secondary">
+                  <Pencil size={15} />
+                  {t("editButton")}
+                </Link>
+                <button className="btn-danger" onClick={handleDelete}>
+                  <Trash2 size={15} />
+                  {t("deleteButton")}
+                </button>
+              </>
+            )}
+          </>
+        }
+      />
 
-      {error && (
-        <div className="card">
-          <strong>{tc("error")}</strong>
-          <p className="muted">{error}</p>
-        </div>
-      )}
+      {error && <ErrorCard title={tc("error")} message={error} />}
 
       {canPublish && (
         <div className="card ai-panel">
@@ -231,7 +228,7 @@ export default function EntityDetail({ entityType, entityId }: { entityType: Ent
         {versions?.map((v) => (
           <div key={v.version} style={{ padding: "0.5rem 0", borderTop: "1px solid var(--border)" }}>
             <span className="badge badge-draft">v{v.version}</span>{" "}
-            <span className={`badge badge-${v.status}`}>{tStatus(v.status)}</span>{" "}
+            <StatusBadge status={v.status} />{" "}
             <span className="muted" dir="ltr">{new Date(v.created_at).toLocaleString(locale, { numberingSystem: "latn" })}</span>
           </div>
         ))}

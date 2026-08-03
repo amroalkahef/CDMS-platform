@@ -2,7 +2,8 @@
 
 import { ArrowLeft } from "lucide-react";
 import { useTranslations } from "next-intl";
-import DecisionForm from "@/components/DecisionForm";
+import EntityForm from "@/components/EntityForm";
+import PageHeader from "@/components/PageHeader";
 import { Link } from "@/i18n/navigation";
 
 export default function NewDecisionPage() {
@@ -15,9 +16,8 @@ export default function NewDecisionPage() {
         <ArrowLeft size={15} />
         {tc("back")}
       </Link>
-      <h1>{t("newTitle")}</h1>
-      <p className="page-subtitle">{t("newSubtitle")}</p>
-      <DecisionForm />
+      <PageHeader title={t("newTitle")} subtitle={t("newSubtitle")} />
+      <EntityForm entityType="decision" />
     </div>
   );
 }

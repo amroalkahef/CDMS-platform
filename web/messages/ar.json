@@ -6,7 +6,9 @@
     "circulars": "التعاميم",
     "decisions": "القرارات",
     "assistant": "المساعد الذكي",
-    "knowledge": "قاعدة المعرفة"
+    "knowledge": "قاعدة المعرفة",
+    "openMenu": "فتح القائمة",
+    "closeMenu": "إغلاق القائمة"
   },
   "common": {
     "save": "حفظ",
@@ -229,7 +231,8 @@
     "referencesLabel": "المراجع",
     "noReferences": "لم يتم العثور على مستندات مطابقة في قاعدة المعرفة.",
     "newChatButton": "محادثة جديدة",
-    "searchingIndicator": "جارٍ البحث في السجلات…"
+    "searchingIndicator": "جارٍ البحث في السجلات…",
+    "sendButton": "إرسال الرسالة"
   },
   "knowledge": {
     "title": "قاعدة المعرفة",
